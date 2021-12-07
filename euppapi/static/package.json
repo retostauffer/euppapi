@@ -1,0 +1,32 @@
+{
+  "name": "euppapi",
+  "description": "Custom API for EUPP Data Inventories",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/retostauffer/euppapi"
+  },
+  "keywords": [
+    "EUPP"
+  ],
+  "author": "Reto Stauffer",
+  "license": "(ISC OR GPL-3.0)",
+  "bugs": {
+    "url": "https://github.com/retostauffer/euppapi"
+  },
+  "scripts": {
+    "css:build": "node_modules/.bin/node-sass --output-style expanded --source-map true --source-map-contents true --precision 6 scss/euppapi_bootstrap.scss css/euppapi_bootstrap.css",
+    "css:minify": "cd css && ../node_modules/.bin/cleancss --source-map --source-map-inline-sources --output euppapi_bootstrap.min.css euppapi_bootstrap.css",
+    "css:all": "npm run css:build && npm run css:minify"
+  },
+  "dependencies": {
+    "bootstrap": "latest",
+    "clean-css": "^5.2.2",
+    "clean-css-cli": "^5.2.2",
+    "debug": "latest",
+    "jquery": "latest",
+    "less": "^4.1.2",
+    "node-sass": "^6.0.1",
+    "popper": "^1.0.1"
+  }
+}

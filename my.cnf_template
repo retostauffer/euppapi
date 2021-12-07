@@ -1,0 +1,10 @@
+
+# my.cnf template
+# Can be used to set up the credentials
+# on your machine by copying it to my.cnf
+# and adjusting the login information.
+[client]
+database = NAME
+user     = USER
+password = PASSWORD
+default-character-set = utf8

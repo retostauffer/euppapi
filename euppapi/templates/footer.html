@@ -1,0 +1,25 @@
+{% load i18n %}
+{% load static %}
+
+    <footer class="mt-auto">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 col-sm-4">
+                    <b>{% trans "Maintainer" %}</b><br/>
+                    Reto Stauffer<br/>
+                    Digital Science Center &amp;<br/>
+                    Department of Statistics<br/>
+                    Universität Innsbruck
+                </div>
+                <div class="col-12 col-sm-4">
+                    <b>{% trans "Hosted at the Universität Innsbruck" %}</b><br/>
+                    <img class="img-fluid" style="width: 70%;" src="{% static "images/uibklogo.svg" %}" />
+                </div>
+                <div class="col-12 col-sm-4">
+                    <b>{% trans "Data source" %}</b><br/>
+                    <img class="img-fluid" style="width: 70%;" src="{% static "images/dwdlogo.png" %}" /><br/>
+
+                </div>
+            </div>
+        </div>
+    </footer>

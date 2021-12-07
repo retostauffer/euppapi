@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block css %}
+{% endblock %}
+
+{% block js %}
+{% endblock %}
+
+
+{% block content %}
+<img class="img-fluid" alt="404 page not found" src="{% static "images/404.svg" %}" />
+
+<div class="col-xs-1 text-center p-3">
+    <h2 class="p-3">Page Not Found</h2>
+    Oh dear, page not found on server.
+</div>
+ </div>
+
+{% endblock %}
+

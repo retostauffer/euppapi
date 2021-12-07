@@ -1,0 +1,8 @@
+
+# Created by npm (see makefile; npm)
+/node_modules
+/package-lock.json
+
+# Compilec CSS files. See
+# package.json/makefile.
+/css/euppapi_bootstrap*

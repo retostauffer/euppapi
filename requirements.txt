@@ -1,0 +1,7 @@
+
+django
+ipython
+mysqlclient
+
+# fixing problem with auto completion
+jedi==0.17.2

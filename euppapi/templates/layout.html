@@ -1,0 +1,49 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link href="{% static "node_modules/bootstrap/dist/css/bootstrap.min.css" %}" rel="stylesheet"/>
+    <link href="{% static "css/euppapi_bootstrap.min.css" %}" rel="stylesheet"/>
+
+    <style>
+    #main-container { padding-bottom: 3em !important; }
+    footer {
+        border-top: 2px solid #CECECE;
+        padding-top: 3em !important;
+        padding-bottom: 2em !important;
+    }
+    </style>
+
+    {% block css %}
+    {% endblock %}
+
+    <script src="{% static "node_modules/jquery/dist/jquery.min.js" %}"></script>
+    <script src="{% static "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js" %}"></script>
+    {% block js %}
+    {% endblock %}
+
+
+    <title>MeteoAPI</title>
+  </head>
+  <body>
+    {% include "navbar.html" %}
+
+    <div id="main-container" class="container my-5">
+      {% if page_title %}
+      <h1>{{ page_title }}</h1>
+      {% endif %}
+
+
+      {% block content %}
+      {% endblock %}
+    </div>
+
+    {% include "footer.html" %}
+  </body>
+</html>
