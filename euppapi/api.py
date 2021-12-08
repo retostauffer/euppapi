@@ -52,12 +52,13 @@ def get_messages(request, type, product, daterange, steprange):
     # Processing daterange and steprange
     mtch = re.match(r"([0-9]{4}-[0-9]{2}-[0-9]{2})(/[0-9]{4}-[0-9]{2}-[0-9]{2})?", daterange)
     if mtch.group(2) is None:
-        daterange = mtch.group(1)
+        daterange = [mtch.group(1)] * 2
     else:
         daterange = [x.replace("/", "")  for x in mtch.groups()]
+
     mtch = re.match(r"([0-9]+)(/[0-9]+)?", steprange)
     if mtch.group(2) is None:
-        steprange = mtch.group(1)
+        steprange = [mtch.group(1)] * 2
     else:
         steprange = [x.replace("/", "")  for x in mtch.groups()]
 
@@ -88,12 +89,12 @@ def get_messages(request, type, product, daterange, steprange):
         res["nmsg"] += msgs.all().count()
         # Adding data
         for rec in msgs.all():
-            messages.append(dict(datadate = rec.date.strftime(datefmt),
-                                 datatime = rec.time,
+            messages.append(dict(datadate     = rec.date.strftime(datefmt),
+                                 datatime     = rec.time,
                                  hindcastdate = None if not rec.hdate else rec.hdate.strftime(datefmt),
-                                 _path     = rec.file.path,
-                                 byterange = f"{rec.bytes_begin}:{rec.bytes_end}",
-                                 param = rec.param,
-                                 leveltype = rec.leveltype.leveltype))
+                                 path         = rec.file.path,
+                                 byterange    = f"{rec.bytes_begin}:{rec.bytes_end}",
+                                 param        = rec.param,
+                                 leveltype    = rec.leveltype.leveltype))
     res["messages"] = messages
     return HttpResponse(json.dumps(res), content_type = "application/json") if request else res
