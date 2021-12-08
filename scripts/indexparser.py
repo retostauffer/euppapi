@@ -73,7 +73,7 @@ class IndexParser:
         return res
 
 
-    def process_file(self, file, domain_levtype_constant = False):
+    def process_file(self, file, domain_levtype_constant = False, nrows = None, verbose = False):
         """process_file(file)
 
         Parameters
@@ -83,7 +83,11 @@ class IndexParser:
         domain_levtype_constant : bool
             Defaults to False, if True 'domain' and 'levtype' are only picked
             from the first message we find. Else from each one (takes about twice as long).
-
+        nrows : None or positive int
+             Number of rows (messages) to process from current file. This
+             mode is only for development purposes!
+        verbose : bool
+             Switch verbose mode on/off.
         """
 
         import os
@@ -96,9 +100,16 @@ class IndexParser:
             raise Exception(f"File '{file}' does not exist.")
         if not isinstance(domain_levtype_constant, bool):
             raise TypeError("Input 'file' must be boolean True or False.")
+        if not isinstance(nrows, int) and not nrows is None:
+            raise TypeError("Input 'nrows' must be None or integer.")
+        if isinstance(nrows, int):
+            if nrows <= 0:
+                raise ValueError("If 'nrows' is integer, it must be positive.")
+        if not isinstance(verbose, bool):
+            raise TypeError("Input 'verbose' must be boolean.")
 
 
-        print(f"Processing file: {file}")
+        if (verbose): print(f"Processing file: {file}")
 
         # Create datatype if not yet existing
         file_info = self._parse_filename_(file)
@@ -124,13 +135,15 @@ class IndexParser:
             for rec in fid:
                 # Development output ...
                 counter += 1
-                sys.stdout.write(f"    Preparing record {counter}\r")
+                if (verbose): sys.stdout.write(f"    Preparing record {counter}\r")
 
                 rec = json.loads(rec)
                 #print(rec)
 
-                # Updating Domain
-                File.objects.update_or_create(datatype = tmp_dt, path = rec["_path"], version = file_info["version"])
+                # Updating files
+                tmp_f = File.objects.update_or_create(datatype = tmp_dt, path = rec["_path"], version = file_info["version"])[0]
+
+                # Updating Domain and Leveltype
                 if counter == 1 or not domain_levtype_constant:
                     tmp_d = Domain.objects.update_or_create(domain = rec["domain"])[0]
                     tmp_l = Leveltype.objects.update_or_create(leveltype = rec["levtype"])[0]
@@ -139,22 +152,12 @@ class IndexParser:
                 date    = dt.strptime(rec["date"], "%Y%m%d").date()
                 hdate   = None if not "hdate" in rec else dt.strptime(rec["hdate"], "%Y%m%d").date()
                 number  = None if not "number" in rec else int(rec["number"])
+                step_begin, step_end = get_steps(rec["step"])
 
                 # Adding message
-                step_begin, step_end = get_steps(rec["step"])
-                #Message.objects.update_or_create(domain      = tmp_d,
-                #                                 leveltype   = tmp_l,
-                #                                 date        = date,
-                #                                 hdate       = hdate,
-                #                                 time        = int(rec["time"]),
-                #                                 step_begin  = step_begin,
-                #                                 step_end    = step_end,
-                #                                 number      = number,
-                #                                 param       = param,
-                #                                 param_id    = int(rec["_param_id"]),
-                #                                 bytes_begin = rec["_offset"],
-                #                                 bytes_end   = rec["_offset"] + rec["_length"])
-                res += [Message(domain      = tmp_d,
+                res += [Message(datatype    = tmp_dt,
+                                file        = tmp_f,
+                                domain      = tmp_d,
                                 leveltype   = tmp_l,
                                 date        = date,
                                 hdate       = hdate,
@@ -167,8 +170,11 @@ class IndexParser:
                                 bytes_begin = rec["_offset"],
                                 bytes_end   = rec["_offset"] + rec["_length"])]
 
+                # Break if nrows is set
+                if nrows and counter > (nrows - 1): break
 
-        sys.stdout.flush()
+
+        if (verbose): sys.stdout.flush()
         print(f"    Inserting {counter} messages into database")
-        Message.objects.bulk_create(res, ignore_conflicts = True)
+        Message.objects.bulk_create(res, batch_size = int(5e4), ignore_conflicts = True)
 

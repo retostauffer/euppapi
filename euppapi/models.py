@@ -46,6 +46,8 @@ class Leveltype(models.Model):
 
 # Grib message
 class Message(models.Model):
+    datatype   = models.ForeignKey(DataType, on_delete = models.CASCADE)
+    file       = models.ForeignKey(File,     on_delete = models.CASCADE)
     domain     = models.ForeignKey(Domain, on_delete = models.CASCADE)
     leveltype  = models.ForeignKey(Leveltype, on_delete = models.CASCADE)
 

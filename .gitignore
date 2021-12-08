@@ -1,6 +1,6 @@
 /cleardb.sh
 /download_testdata.sh
-
+*.swp
 
 /_data
 /my.cnf

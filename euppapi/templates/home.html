@@ -20,7 +20,27 @@ div.home-icon img {
 
 {% block content %}
 
-foo
+<h1>EUPP Benchmark Dataset API</h1>
+
+<p>
+Single date, single step (24)<br/>
+<code>http://127.0.0.1:8000/api/forecast/ens/2017-01-01/24</code>
+</p>
+
+<p>
+Single date, step range (24-90)<br/>
+<code>http://127.0.0.1:8000/api/forecast/ens/2017-01-01/24/90</code>
+</p>
+
+<p>
+Date range, single step (24)<br/>
+<code>http://127.0.0.1:8000/api/forecast/ens/2017-01-01/2017-01-10/24</code>
+</p>
+
+<p>
+Date range, step range (24-90)<br/>
+<code>http://127.0.0.1:8000/api/forecast/ens/2017-01-01/2017-01-10/24/90</code>
+</p>
 {% endblock %}
 
 

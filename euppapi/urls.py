@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 
-from django.urls import path
+from django.urls import re_path, path
 from django.urls import include
 from django.conf import settings
 from django.conf.urls.static import static
@@ -23,13 +23,14 @@ from django.conf.urls.static import static
 from django.conf.urls import handler404, handler500
 
 from . import views
-#from . import api
+from . import api
 
 import logging
 logger = logging.getLogger("euppapi.urls")
 
 urlpatterns = [
-    path("",                      views.home),
+    path("",                      views.home, name = "home"),
+    re_path(r"^api/(?P<type>\w+)/(?P<product>\w+)/(?P<daterange>[0-9]{4}-[0-9]{2}-[0-9]{2}(/[0-9]{4}-[0-9]{2}-[0-9]{2})?)/(?P<steprange>[0-9]+(/[0-9]+)?)/?$", api.get_messages, name = "API"),
     #path("map",                   views.map),
     #path("overview",              views.overview),
     #path("documentation",         views.documentation),
