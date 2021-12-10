@@ -30,7 +30,8 @@ logger = logging.getLogger("euppapi.urls")
 
 urlpatterns = [
     path("",                      views.home, name = "home"),
-    re_path(r"^api/(?P<type>\w+)/(?P<product>\w+)/(?P<daterange>[0-9]{4}-[0-9]{2}-[0-9]{2}(/[0-9]{4}-[0-9]{2}-[0-9]{2})?)/(?P<steprange>[0-9]+(/[0-9]+)?)/?$", api.get_messages, name = "API"),
+    re_path(r"^api/(?P<type>\w+)/(?P<product>\w+)/(?P<daterange>[0-9]{4}-[0-9]{2}-[0-9]{2}(/[0-9]{4}-[0-9]{2}-[0-9]{2})?)/?$", api.get_messages, name = "API"),
+    #####re_path(r"^api/(?P<type>\w+)/(?P<product>\w+)/(?P<daterange>[0-9]{4}-[0-9]{2}-[0-9]{2}(/[0-9]{4}-[0-9]{2}-[0-9]{2})?)/(?P<steprange>[0-9]+(/[0-9]+)?)/?$", api.get_messages, name = "API"),
     #path("map",                   views.map),
     #path("overview",              views.overview),
     #path("documentation",         views.documentation),
