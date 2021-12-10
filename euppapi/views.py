@@ -21,3 +21,4 @@ def home(request):
     ###context = {"page_title": "Meteo API"}
     context = {"page_title": None}
     return render(request, "home.html", context)
+

@@ -97,10 +97,24 @@ class IndexParser:
 
         import os
         import re
+        import requests
+        from tempfile import NamedTemporaryFile
         from euppapi.models import DataType, File, Domain, Leveltype, Message
 
         if not isinstance(file, str):
             raise TypeError("Input 'file' must be string.")
+
+        # Http request?
+        if re.match("^https?://.*", file):
+            try:
+                req = requests.get(file)
+            except Exception as e:
+                raise Exception(f"Problems downloading {file}: {e}")
+            #tmp = NamedTemporaryFile()
+            tmp = os.path.join("_data", os.path.basename(file))
+            with open(tmp, "wb") as fid: fid.write(req.content)
+            file = tmp
+
         if not os.path.isfile(file):
             raise Exception(f"File '{file}' does not exist.")
         if not isinstance(file_constant, bool):
@@ -159,7 +173,7 @@ class IndexParser:
                 param   = rec["param"] if not "levelist" in rec else "".join([rec["param"], rec["levelist"]])
                 date    = dt.datetime.strptime(rec["date"], "%Y%m%d").date()
                 hdate   = dummy_date if not "hdate" in rec else dt.datetime.strptime(rec["hdate"], "%Y%m%d").date()
-                number  = None if not "number" in rec else int(rec["number"])
+                number  = -1 if not "number" in rec else int(rec["number"])
                 # Setting control run member to member 0
                 if tmp_dt.product == "ens" and number is None: number = 0
                 step_begin, step_end = get_steps(rec["step"])

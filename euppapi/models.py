@@ -1,10 +1,8 @@
 
-
-
-
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 import logging
 logger = logging.getLogger("{:s}.models".format(settings.APP_NAME))
@@ -22,7 +20,7 @@ class DataType(models.Model):
 
     baseurl   = models.CharField(max_length = 50)
     type      = models.CharField(max_length = 20)  # forecast, reforecast, analysis
-    product   = models.CharField(max_length = 5)   # ens, ana, hr
+    product   = models.CharField(max_length = 10)   # ens, ana, hr
     kind      = models.CharField(max_length = 10)  # surface, pressure
 
     class Meta:
@@ -57,7 +55,7 @@ class Message(models.Model):
     time       = models.PositiveSmallIntegerField()
     step_begin = models.PositiveSmallIntegerField()
     step_end   = models.PositiveSmallIntegerField()
-    number     = models.PositiveSmallIntegerField(null = True)
+    number     = models.SmallIntegerField(validators = [MinValueValidator(-1), MaxValueValidator(50)])
 
     # Parameter information
     param      = models.CharField(max_length = 8)
