@@ -44,12 +44,7 @@ def get_messages(request, type, product, daterange):
     note = ""
 
     # When requesting ens: fetch ens + ctr
-    if product == "ens":
-        objType = DataType.objects.filter(product__range = ["ctr", "ens"])
-        #objType = DataType.objects.filter(Q(product__exact = "ctr") | Q(product__exact = "ens"))
-    else:
-        objType = DataType.objects.filter(product__exact = product)
-    objType = objType.filter(type__exact = type)
+    objType = DataType.objects.filter(type__exact = type, product__exact = product)
 
     # Processing daterange and steprange
     mtch = re.match(r"([0-9]{4}-[0-9]{2}-[0-9]{2})(/[0-9]{4}-[0-9]{2}-[0-9]{2})?", daterange)

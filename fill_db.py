@@ -30,6 +30,8 @@ if __name__ == "__main__":
     #parser.process_file("_data/EU_forecast_efi_params_2017-01_0.grb.index")
     #parser.process_file("_data/EU_reforecast_ens_pressure_params_2017-01-02_0.grb.index")
 
+    files = ["_data/EU_forecast_ctr_pressure_params_2017-01_0.grb.index",
+             "_data/EU_forecast_ens_pressure_params_2017-01-01_0.grb.index"]
     for file in files:
         #parser.process_file(file, file_constant = True, nrows = 1000, verbose = True)
         parser.process_file(file, file_constant = True, verbose = True)

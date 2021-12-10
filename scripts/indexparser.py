@@ -11,7 +11,7 @@ logger = logging.getLogger("euppDB")
 
 import sys
 import json
-from datetime import datetime as dt
+import datetime as dt
 
 class IndexParser:
 
@@ -70,6 +70,11 @@ class IndexParser:
             res = dict(type = mtch[0], product = mtch[1], kind = mtch[2], version = vers)
         else:
             res = dict(type = mtch[0], product = mtch[1], kind = mtch[1], version = vers)
+
+        # Force re-write 'ctr' to 'ens'
+        for n in ["product", "kind"]:
+            if res[n] == "ctr": res[n] = "ens"
+
         return res
 
 
@@ -114,7 +119,6 @@ class IndexParser:
 
         # Create datatype if not yet existing
         file_info = self._parse_filename_(file)
-        if file_info["kind"] == "ctr": file_info["kind"] = "ens"
         tmp_dt = DataType.objects.update_or_create(baseurl = "foo",
                                                    type    = file_info["type"],
                                                    product = file_info["product"],
@@ -131,6 +135,7 @@ class IndexParser:
 
 
         # Reading the file (JSON)
+        dummy_date = dt.date(1900, 1, 1)
         counter = 0
         res = []
         with open(file, "r") as fid:
@@ -152,9 +157,11 @@ class IndexParser:
                     tmp_l = Leveltype.objects.update_or_create(leveltype = rec["levtype"])[0]
 
                 param   = rec["param"] if not "levelist" in rec else "".join([rec["param"], rec["levelist"]])
-                date    = dt.strptime(rec["date"], "%Y%m%d").date()
-                hdate   = None if not "hdate" in rec else dt.strptime(rec["hdate"], "%Y%m%d").date()
+                date    = dt.datetime.strptime(rec["date"], "%Y%m%d").date()
+                hdate   = dummy_date if not "hdate" in rec else dt.datetime.strptime(rec["hdate"], "%Y%m%d").date()
                 number  = None if not "number" in rec else int(rec["number"])
+                # Setting control run member to member 0
+                if tmp_dt.product == "ens" and number is None: number = 0
                 step_begin, step_end = get_steps(rec["step"])
 
                 # Adding message

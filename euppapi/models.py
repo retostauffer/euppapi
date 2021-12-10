@@ -46,14 +46,14 @@ class Leveltype(models.Model):
 
 # Grib message
 class Message(models.Model):
-    datatype   = models.ForeignKey(DataType, on_delete = models.CASCADE)
-    file       = models.ForeignKey(File,     on_delete = models.CASCADE)
-    domain     = models.ForeignKey(Domain, on_delete = models.CASCADE)
+    datatype   = models.ForeignKey(DataType,  on_delete = models.CASCADE)
+    file       = models.ForeignKey(File,      on_delete = models.CASCADE)
+    domain     = models.ForeignKey(Domain,    on_delete = models.CASCADE)
     leveltype  = models.ForeignKey(Leveltype, on_delete = models.CASCADE)
 
     # Time information
     date       = models.DateField()
-    hdate      = models.DateField(null = True)
+    hdate      = models.DateField()
     time       = models.PositiveSmallIntegerField()
     step_begin = models.PositiveSmallIntegerField()
     step_end   = models.PositiveSmallIntegerField()
@@ -66,3 +66,9 @@ class Message(models.Model):
     # Bytes range within grib file
     bytes_begin = models.PositiveBigIntegerField()
     bytes_end   = models.PositiveBigIntegerField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields = ["date", "hdate", "time", "step_begin", "step_end", "number", "param"], name = "unique_message")
+            ###models.UniqueConstraint(fields = ["date", "hdate", "time", "step_begin", "step_end", "number", "param"], name = "unique_message")
+        ]
