@@ -100,19 +100,19 @@ def get_messages_analysis(request, daterange):
     # No problem found? Fetching data
     # -------------------------------------------
     if not res["error"]:
-        msgs = ot.message_set.filter(date__range          = res["daterange"])
-        if res["hour"]:   msgs = msgs.filter(time__in     = res["hour"])
-        if res["param"]:  msgs = msgs.filter(param__in    = res["param"])
-        if res["number"]: msgs = msgs.filter(number__in   = res["number"])
+        msgs = ot.message_set.filter(date__date__range        = res["daterange"])
+        if res["hour"]:   msgs = msgs.filter(time__in         = res["hour"])
+        if res["param"]:  msgs = msgs.filter(param__param__in = res["param"])
+        if res["number"]: msgs = msgs.filter(number__in       = res["number"])
         # Adding count
         res["nmsg"] += msgs.all().count()
         # Adding data
         for rec in msgs.all():
-            res["messages"].append(dict(datadate     = rec.date.strftime(datefmt),
+            res["messages"].append(dict(datadate     = rec.date.date.strftime(datefmt),
                                         datatime     = rec.time,
                                         path         = rec.file.path,
                                         byterange    = f"{rec.bytes_begin}-{rec.bytes_end}",
-                                        param        = rec.param))
+                                        param        = rec.param.param))
                                         ##leveltype    = rec.leveltype.leveltype))
 
     # Prepare return

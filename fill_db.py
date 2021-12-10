@@ -28,13 +28,17 @@ if __name__ == "__main__":
     #parser.process_file("_data/EU_reforecast_ens_pressure_params_2017-01-02_0.grb.index")
     #parser.process_file("_data/EU_forecast_efi_params_2017-01_0.grb.index")
     #parser.process_file("_data/EU_reforecast_ens_pressure_params_2017-01-02_0.grb.index")
+    ####file = "_data/EU_analysis_pressure_params_2005-06.grb.index"
+    ####parser.process_file(file, file_constant = True, verbose = True)
+    ####sys.exit(3)
 
     BASEURL = "https://storage.ecmwf.europeanweather.cloud/benchmark-dataset"
     DATADIR = "_data"
 
     # Processing 'analysis'
     files = []
-    for year in range(1997, 2020):
+    #for year in range(1997, 2020):
+    for year in range(1997, 1998):
         for month in range(1, 13):
             u1 = f"{BASEURL}/data/ana/pressure/EU_analysis_pressure_params_{year:04d}-{month:02d}.grb.index"
             d1 = os.path.join(DATADIR, os.path.basename(u1))

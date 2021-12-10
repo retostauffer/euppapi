@@ -99,7 +99,7 @@ class IndexParser:
         import re
         import requests
         from tempfile import NamedTemporaryFile
-        from euppapi.models import DataType, File, Domain, Leveltype, Message
+        from euppapi.models import DataType, File, Domain, Leveltype, Message, Date, Parameter
 
         if not isinstance(file, str):
             raise TypeError("Input 'file' must be string.")
@@ -133,10 +133,10 @@ class IndexParser:
 
         # Create datatype if not yet existing
         file_info = self._parse_filename_(file)
-        tmp_dt = DataType.objects.update_or_create(baseurl = "foo",
-                                                   type    = file_info["type"],
-                                                   product = file_info["product"],
-                                                   kind    = file_info["kind"])[0]
+        tmp_dt = DataType.objects.get_or_create(baseurl = "foo",
+                                                type    = file_info["type"],
+                                                product = file_info["product"],
+                                                kind    = file_info["kind"])[0]
 
         # Helper function to get begin/end step
         def get_steps(x):
@@ -165,32 +165,40 @@ class IndexParser:
                 # Updating Domain and Leveltype
                 if counter == 1 or not file_constant:
                     # Updating files
-                    tmp_f = File.objects.update_or_create(datatype = tmp_dt, path = rec["_path"],
-                            version = file_info["version"])[0]
-                    tmp_d = Domain.objects.update_or_create(domain = rec["domain"])[0]
-                    tmp_l = Leveltype.objects.update_or_create(leveltype = rec["levtype"])[0]
+                    tmp_f = File.objects.get_or_create(datatype = tmp_dt, path = rec["_path"],
+                                                       version = file_info["version"])
+                    tmp_d = Domain.objects.get_or_create(domain = rec["domain"])
+                    tmp_l = Leveltype.objects.get_or_create(leveltype = rec["levtype"])
 
+                # Parameter object (django model)
                 param   = rec["param"] if not "levelist" in rec else "".join([rec["param"], rec["levelist"]])
-                date    = dt.datetime.strptime(rec["date"], "%Y%m%d").date()
-                hdate   = dummy_date if not "hdate" in rec else dt.datetime.strptime(rec["hdate"], "%Y%m%d").date()
+                tmp_param   = Parameter.objects.get_or_create(name = param,
+                                                              ecmwfid = rec["_param_id"],
+                                                              domain      = tmp_d[0],
+                                                              leveltype   = tmp_l[0])
+
+                # Date objects (django model)
+                date      = dt.datetime.strptime(rec["date"], "%Y%m%d").date()
+                hdate     = dummy_date if not "hdate" in rec else dt.datetime.strptime(rec["hdate"], "%Y%m%d").date()
+                tmp_date  = Date.objects.get_or_create(date = date)
+                tmp_hdate = Date.objects.get_or_create(date = hdate)
+
                 number  = -1 if not "number" in rec else int(rec["number"])
                 # Setting control run member to member 0
                 if tmp_dt.product == "ens" and number is None: number = 0
-                step_begin, step_end = get_steps(rec["step"])
+                if tmp_dt.type == "analysis":
+                    step        = int(rec["time"]) / 100
+                else:
+                    step_begin, step = get_steps(rec["step"])
 
                 # Adding message
                 res += [Message(datatype    = tmp_dt,
-                                file        = tmp_f,
-                                domain      = tmp_d,
-                                leveltype   = tmp_l,
-                                date        = date,
-                                hdate       = hdate,
-                                time        = int(rec["time"]),
-                                step_begin  = step_begin,
-                                step_end    = step_end,
+                                file        = tmp_f[0],
+                                date        = tmp_date[0],
+                                hdate       = tmp_hdate[0],
+                                step        = step, # hour (analysis) or forecast step (fcst)
                                 number      = number,
-                                param       = param,
-                                param_id    = int(rec["_param_id"]),
+                                param       = tmp_param[0],
                                 bytes_begin = rec["_offset"],
                                 bytes_end   = rec["_offset"] + rec["_length"])]
 

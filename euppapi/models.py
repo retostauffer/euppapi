@@ -30,43 +30,58 @@ class DataType(models.Model):
 
 # Referencing files
 class File(models.Model):
+    id         = models.SmallAutoField(primary_key = True)
     datatype = models.ForeignKey(DataType, on_delete = models.CASCADE)
     path     = models.CharField(max_length = 200)
     version  = models.PositiveSmallIntegerField(null = True)
 
+# Init date/date
+class Date(models.Model):
+    id         = models.SmallAutoField(primary_key = True)
+    date = models.DateField(max_length = 3, unique = True)
+
 # Referencing Domain
 class Domain(models.Model):
-    domain = models.CharField(max_length = 3, unique = True)
+    id         = models.SmallAutoField(primary_key = True)
+    domain     = models.CharField(max_length = 3, unique = True)
 
 # Referencing level type
 class Leveltype(models.Model):
+    id         = models.SmallAutoField(primary_key = True)
     leveltype  = models.CharField(max_length = 3, unique = True)
+
+# Name of parameter
+class Parameter(models.Model):
+    id         = models.SmallAutoField(primary_key = True)
+    name       = models.CharField(max_length = 8)
+    ecmwfid    = models.PositiveIntegerField()
+    domain     = models.ForeignKey(Domain,    on_delete = models.PROTECT)
+    leveltype  = models.ForeignKey(Leveltype, on_delete = models.PROTECT)
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields = ["name", "ecmwfid"], name = "unique_parameter")
+        ]
+
 
 # Grib message
 class Message(models.Model):
     datatype   = models.ForeignKey(DataType,  on_delete = models.CASCADE)
     file       = models.ForeignKey(File,      on_delete = models.CASCADE)
-    domain     = models.ForeignKey(Domain,    on_delete = models.CASCADE)
-    leveltype  = models.ForeignKey(Leveltype, on_delete = models.CASCADE)
 
     # Time information
-    date       = models.DateField()
-    hdate      = models.DateField()
-    time       = models.PositiveSmallIntegerField()
-    step_begin = models.PositiveSmallIntegerField()
-    step_end   = models.PositiveSmallIntegerField()
+    date       = models.ForeignKey(Date, on_delete = models.PROTECT, related_name = "init_date")
+    hdate      = models.ForeignKey(Date, on_delete = models.PROTECT, related_name = "hindcast_date")
+    step       = models.PositiveSmallIntegerField()
     number     = models.SmallIntegerField(validators = [MinValueValidator(-1), MaxValueValidator(50)])
 
     # Parameter information
-    param      = models.CharField(max_length = 8)
-    param_id   = models.PositiveIntegerField()
+    param      = models.ForeignKey(Parameter, on_delete = models.PROTECT)
 
     # Bytes range within grib file
-    bytes_begin = models.PositiveBigIntegerField()
-    bytes_end   = models.PositiveBigIntegerField()
+    bytes_begin = models.PositiveIntegerField() #models.PositiveBigIntegerField()
+    bytes_end   = models.PositiveIntegerField() #models.PositiveBigIntegerField()
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields = ["date", "hdate", "time", "step_begin", "step_end", "number", "param"], name = "unique_message")
-            ###models.UniqueConstraint(fields = ["date", "hdate", "time", "step_begin", "step_end", "number", "param"], name = "unique_message")
+            models.UniqueConstraint(fields = ["date", "hdate", "step", "number", "param"], name = "unique_message")
         ]
