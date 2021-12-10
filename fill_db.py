@@ -31,7 +31,8 @@ if __name__ == "__main__":
     #parser.process_file("_data/EU_reforecast_ens_pressure_params_2017-01-02_0.grb.index")
 
     for file in files:
-        parser.process_file(file, domain_levtype_constant = True, nrows = 1000, verbose = True)
+        #parser.process_file(file, file_constant = True, nrows = 1000, verbose = True)
+        parser.process_file(file, file_constant = True, verbose = True)
 
     # Check how many stations we have in the database
     #stations = Station.objects.count()

@@ -73,15 +73,15 @@ class IndexParser:
         return res
 
 
-    def process_file(self, file, domain_levtype_constant = False, nrows = None, verbose = False):
+    def process_file(self, file, file_constant = False, nrows = None, verbose = False):
         """process_file(file)
 
         Parameters
         ==========
         file : str
             Path to the GRIB index file to be processed.
-        domain_levtype_constant : bool
-            Defaults to False, if True 'domain' and 'levtype' are only picked
+        file_constant : bool
+            Defaults to False, if True '_path', 'domain' and 'levtype' are only picked
             from the first message we find. Else from each one (takes about twice as long).
         nrows : None or positive int
              Number of rows (messages) to process from current file. This
@@ -98,7 +98,7 @@ class IndexParser:
             raise TypeError("Input 'file' must be string.")
         if not os.path.isfile(file):
             raise Exception(f"File '{file}' does not exist.")
-        if not isinstance(domain_levtype_constant, bool):
+        if not isinstance(file_constant, bool):
             raise TypeError("Input 'file' must be boolean True or False.")
         if not isinstance(nrows, int) and not nrows is None:
             raise TypeError("Input 'nrows' must be None or integer.")
@@ -111,8 +111,10 @@ class IndexParser:
 
         if (verbose): print(f"Processing file: {file}")
 
+
         # Create datatype if not yet existing
         file_info = self._parse_filename_(file)
+        if file_info["kind"] == "ctr": file_info["kind"] = "ens"
         tmp_dt = DataType.objects.update_or_create(baseurl = "foo",
                                                    type    = file_info["type"],
                                                    product = file_info["product"],
@@ -140,11 +142,12 @@ class IndexParser:
                 rec = json.loads(rec)
                 #print(rec)
 
-                # Updating files
-                tmp_f = File.objects.update_or_create(datatype = tmp_dt, path = rec["_path"], version = file_info["version"])[0]
 
                 # Updating Domain and Leveltype
-                if counter == 1 or not domain_levtype_constant:
+                if counter == 1 or not file_constant:
+                    # Updating files
+                    tmp_f = File.objects.update_or_create(datatype = tmp_dt, path = rec["_path"],
+                            version = file_info["version"])[0]
                     tmp_d = Domain.objects.update_or_create(domain = rec["domain"])[0]
                     tmp_l = Leveltype.objects.update_or_create(leveltype = rec["levtype"])[0]
 
