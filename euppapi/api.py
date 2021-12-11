@@ -14,9 +14,11 @@ from .models import *
 def _get_message_parse_args_(request, daterange, analysis = False):
 
     import re
+    from datetime import datetime as dt
 
     # Dictionary to be returned
-    res = dict(note = "", error = False)
+    note = "EUPP API request issued {:s}".format(dt.now().strftime("%Y-%m-%d %H:%M:%S"))
+    res = dict(note = note, error = False)
 
     # Steps or hour (for analysis)
     what = "hour" if analysis else "step"
@@ -59,10 +61,14 @@ def _get_message_parse_args_(request, daterange, analysis = False):
     return res
 
 
+# -----------------------------------------------------------
+# -----------------------------------------------------------
+# -----------------------------------------------------------
+# -----------------------------------------------------------
 def get_messages_analysis(request, daterange):
-    """test()
+    """get_messages_analysis()
 
-    GET parameters allowed are '?step', '?number', and '?param'.  Single values
+    GET parameters allowed are '?hour', '?number', and '?param'.  Single values
     or colon separated lists.  E.g., 'hour=0:6:12' will return analysis for hour
     '0', '6', and '12' only. 'param=2t:cp' will subset '2t' and 'cp' only.
     'number' works like 'step'. If not set, all steps/parameters will be
@@ -87,11 +93,10 @@ def get_messages_analysis(request, daterange):
     datefmt  = "%Y-%m-%d %H:%M"
 
     # When requesting ens: fetch ens + ctr
-    ot = DataType.objects.filter(type__exact = "analysis")[0]
+    ot = GriddedDataTypes.objects.filter(type__exact = "analysis")[0]
 
     # Initializing resulting dictionary
     res = _get_message_parse_args_(request, daterange, analysis = True)
-    if res["hour"]: res["hour"] = [100 * x for x in res["hour"]]
     res.update(dict(type = "analysis",
                     baseurl = "https://storage.ecmwf.europeanweather.cloud/benchmark-dataset"),
                     nmsg = 0, messages = [])
@@ -100,8 +105,8 @@ def get_messages_analysis(request, daterange):
     # No problem found? Fetching data
     # -------------------------------------------
     if not res["error"]:
-        msgs = ot.message_set.filter(date__date__range        = res["daterange"])
-        if res["hour"]:   msgs = msgs.filter(time__in         = res["hour"])
+        msgs = ot.griddedanalysismessages_set.filter(date__date__range = res["daterange"]).order_by("date__date", "hour")
+        if res["hour"]:   msgs = msgs.filter(hour__in         = res["hour"])
         if res["param"]:  msgs = msgs.filter(param__param__in = res["param"])
         if res["number"]: msgs = msgs.filter(number__in       = res["number"])
         # Adding count
@@ -109,16 +114,21 @@ def get_messages_analysis(request, daterange):
         # Adding data
         for rec in msgs.all():
             res["messages"].append(dict(datadate     = rec.date.date.strftime(datefmt),
-                                        datatime     = rec.time,
+                                        datatime     = rec.hour,
                                         path         = rec.file.path,
                                         byterange    = f"{rec.bytes_begin}-{rec.bytes_end}",
-                                        param        = rec.param.param))
+                                        param        = rec.param.name))
                                         ##leveltype    = rec.leveltype.leveltype))
 
     # Prepare return
     return HttpResponse(json.dumps(res), content_type = "application/json") if request else res
 
-def get_messages(request, type, product, daterange):
+
+# -----------------------------------------------------------
+# -----------------------------------------------------------
+# -----------------------------------------------------------
+# -----------------------------------------------------------
+def get_messages_forecast(request, product, daterange):
     """test()
 
     GET parameters allowed are '?step', '?number', and '?param'.  Single values
@@ -131,8 +141,6 @@ def get_messages(request, type, product, daterange):
     Parameters
     ==========
     request : django request
-    type : str
-        E.g., forecast, reforecast
     product : None (analysis) or str
         E.g., ens, hr
     daterange : str
@@ -150,35 +158,48 @@ def get_messages(request, type, product, daterange):
     datefmt  = "%Y-%m-%d %H:%M"
 
     # When requesting ens: fetch ens + ctr
-    objType = DataType.objects.filter(type__exact = type, product__exact = product)
-
+    objType = GriddedDataTypes.objects.filter(type__exact = "forecast", product__exact = product)
 
     # Initializing resulting dictionary
     res = _get_message_parse_args_(request, daterange, analysis = False)
-    res.update(dict(type = type, product = product,
+    res.update(dict(type = "forecast", product = product,
                     baseurl = "https://storage.ecmwf.europeanweather.cloud/benchmark-dataset"),
                     nmsg = 0, messages = [])
 
     # -------------------------------------------
-    # No problem found? Fetching data
+    # No problem found?
     # -------------------------------------------
+    # Counting data first ....
     if not res["error"]:
         for ot in objType:
-            msgs = ot.message_set.filter(date__range          = res["daterange"])
-            if res["step"]:   msgs = msgs.filter(step_end__in = res["step"])
-            if res["param"]:  msgs = msgs.filter(param__in    = res["param"])
-            if res["number"]: msgs = msgs.filter(number__in   = res["number"])
+            msgs = ot.griddedforecastmessages_set.filter(date__date__range = res["daterange"]).order_by("date__date", "step")
+            if res["step"]:   msgs = msgs.filter(step__in        = res["step"])
+            if res["param"]:  msgs = msgs.filter(param__name__in = res["param"])
+            if res["number"]: msgs = msgs.filter(number__in      = res["number"])
             # Adding count
             res["nmsg"] += msgs.all().count()
+
+        msglimit = 5000
+        if res["nmsg"] > msglimit:
+            res["error"] = True
+            res["note"] += "; ERORR: request would result in {:d} messages ({:d} is the limit)".format(res["nmsg"], msglimit)
+
+
+    # Fetching data
+    if not res["error"]:
+        for ot in objType:
+            msgs = ot.griddedforecastmessages_set.filter(date__date__range = res["daterange"]).order_by("date__date", "step")
+            if res["step"]:   msgs = msgs.filter(step__in        = res["step"])
+            if res["param"]:  msgs = msgs.filter(param__name__in = res["param"])
+            if res["number"]: msgs = msgs.filter(number__in      = res["number"])
             # Adding data
             for rec in msgs.all():
-                res["messages"].append(dict(datadate     = rec.date.strftime(datefmt),
-                                            datatime     = rec.time,
-                                            hindcastdate = None if not rec.hdate else rec.hdate.strftime(datefmt),
+                res["messages"].append(dict(datadate     = rec.date.date.strftime(datefmt),
+                                            #hindcastdate = None if not rec.hdate else rec.hdate.strftime(datefmt),
                                             path         = rec.file.path,
                                             byterange    = f"{rec.bytes_begin}-{rec.bytes_end}",
-                                            param        = rec.param,
-                                            step         = rec.step_end,
+                                            param        = rec.param.name,
+                                            step         = rec.step,
                                             number       = rec.number))
                                             ##leveltype    = rec.leveltype.leveltype))
 

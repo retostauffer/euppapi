@@ -64,6 +64,7 @@ class Parameters(models.Model):
 
 # Gridded Analysis message
 class GriddedAnalysisMessages(models.Model):
+    datatype   = models.ForeignKey(GriddedDataTypes, on_delete = models.CASCADE)
     file       = models.ForeignKey(Files, on_delete = models.CASCADE)
 
     # Time information
@@ -84,6 +85,7 @@ class GriddedAnalysisMessages(models.Model):
 
 # Grib message
 class GriddedForecastMessages(models.Model):
+    datatype   = models.ForeignKey(GriddedDataTypes, on_delete = models.CASCADE)
     file       = models.ForeignKey(Files, on_delete = models.CASCADE)
 
     # Time information
@@ -105,6 +107,7 @@ class GriddedForecastMessages(models.Model):
 
 # Grib message
 class GriddedReforecastMessages(models.Model):
+    datatype   = models.ForeignKey(GriddedDataTypes, on_delete = models.CASCADE)
     file       = models.ForeignKey(Files, on_delete = models.CASCADE)
 
     # Time information

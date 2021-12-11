@@ -189,6 +189,7 @@ class IndexParser:
                     if tmp_dt.type == "forecast":
                         step_begin, step_end = self._get_steps_(rec["step"])
                         msg = GriddedForecastMessages(
+                                        datatype    = tmp_dt,
                                         file        = tmp_f[0],
                                         date        = tmp_date[0],
                                         step        = step_end,
@@ -202,6 +203,7 @@ class IndexParser:
                         tmp_hdate = Dates.objects.get_or_create(date = hdate)
                         step_begin, step_end = self._get_steps_(rec["step"])
                         msg = GriddedReforecastMessages(
+                                        datatype    = tmp_dt,
                                         file        = tmp_f[0],
                                         date        = tmp_date[0],
                                         hdate       = tmp_hdate[0],
@@ -212,6 +214,7 @@ class IndexParser:
                                         bytes_end   = rec["_offset"] + rec["_length"])
                     elif tmp_dt.type == "analysis":
                         msg = GriddedAnalysisMessages(
+                                        datatype    = tmp_dt,
                                         file        = tmp_f[0],
                                         date        = tmp_date[0],
                                         hour        = int(rec["time"]) / 100,
@@ -229,16 +232,19 @@ class IndexParser:
 
 
                 if verbose: sys.stdout.flush()
-                if verbose: print("\n")
 
             # That is, indeed, not nice ... whatever.
+            #####if verbose: print(f"  Adding {len(res)} to database.")
             if tmp_dt.type == "forecast":
                 bulkobj = GriddedForecastMessages.objects
             elif tmp_dt.type == "reforecast":
                 bulkobj = GriddedReforecastMessages.objects
             else:
                 bulkobj = GriddedAnalysisMessages.objects
+            # Ignore conflicts: if insert is impossible (wrong) or the key
+            # exists we skip this (INSERT OR IGNORE).
             bulkobj.bulk_create(res, batch_size = int(5e4), ignore_conflicts = True)
+            #bulkobj.bulk_create(res, batch_size = int(5e4), ignore_conflicts = False)
             # -----------------------------------------
 
 

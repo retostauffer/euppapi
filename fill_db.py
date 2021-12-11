@@ -87,8 +87,7 @@ def process_analysis(BASEURL, DATADIR, years, months, nrows = None):
             urls.append(f"{BASEURL}/data/ana/pressure/EU_analysis_pressure_params_{year:04d}-{month:02d}.grb.index")
             urls.append(f"{BASEURL}/data/ana/surf/EU_analysis_surf_params_{year:04d}-{month:02d}.grb.index")
 
-    print(urls)
-    process_files(urls, DATADIR, nrows = nrows)
+    process_files(urls, DATADIR, nrows = nrows, verbose = True)
 
 
 # --------------------------------------------------------------
@@ -118,7 +117,7 @@ def process_forecasts(BASEURL, DATADIR, years, months, version = 0, nrows = None
                 urls.append(f"{BASEURL}/data/fcs/surf/EU_forecast_ens_surf_params_{date}_{version}.grb.index")
                 curr += dt.timedelta(1)
 
-        process_files(urls, DATADIR, nrows = nrows)
+        process_files(urls, DATADIR, nrows = nrows, verbose = True)
 
 
 # --------------------------------------------------------------
@@ -142,17 +141,19 @@ def process_reforecasts(BASEURL, DATADIR, years, months, version = 0, nrows = No
 
             # Ensemble members
             curr = dt.date(year, month, 1)
-            end  = (dt.date(year, month + 1, 1) if month == 12 else dt.date(year + 1, 1, 1)) - dt.timedelta(1)
+            end  = (dt.date(year, month + 1, 1) if month <= 12 else dt.date(year + 1, 1, 1)) - dt.timedelta(1)
             while curr <= end:
-                # Skip if not Monday (1) or Thursday (4)
-                if not  curr.timetuple().tm_wday in [1, 4]: continue
+                # Skip if not Monday (0) or Thursday (3)
+                if not  curr.timetuple().tm_wday in [0, 3]:
+                    curr += dt.timedelta(1)
+                    continue
                 date = curr.strftime("%Y-%m-%d")
                 # Enemble
                 urls.append(f"{BASEURL}/data/rfcs/surf/EU_reforecast_ens_surf_params_{date}_{version}.grb.index")
                 urls.append(f"{BASEURL}/data/rfcs/pressure/EU_reforecast_ens_pressure_params_{date}_{version}.grb.index")
                 curr += dt.timedelta(1)
 
-        process_files(urls, DATADIR, nrows = nrows)
+        process_files(urls, DATADIR, nrows = nrows, verbose = True)
 
 
 # --------------------------------------------------------------
@@ -169,10 +170,10 @@ if __name__ == "__main__":
     #process_analysis(BASEURL,    DATADIR, range(1997, 2020), range(1, 3), nrows = 10)
     #process_forecasts(BASEURL,   DATADIR, range(2017, 2019), range(1, 3), nrows = 10)
     #process_reforecasts(BASEURL, DATADIR, range(2017, 2019), range(1, 3), nrows = 10)
-    process_analysis(BASEURL,    DATADIR, [1997], [1], nrows = 10)
-    process_forecasts(BASEURL,   DATADIR, [2017], [1], nrows = 10)
-    process_reforecasts(BASEURL, DATADIR, [2017], [1], nrows = 10)
-    #process_analysis(BASEURL,    DATADIR, [1997], [1]) #, nrows = 10)
-    #process_forecasts(BASEURL,   DATADIR, [2017], [1]) #, nrows = 10)
-    #process_reforecasts(BASEURL, DATADIR, [2017], [1]) #, nrows = 10)
+    #process_analysis(BASEURL,    DATADIR, [2017], [1], nrows = 10)
+    #process_forecasts(BASEURL,   DATADIR, [2017], [1], nrows = 10)
+    #process_reforecasts(BASEURL, DATADIR, [2017], [1], nrows = 10)
+    process_analysis(BASEURL,    DATADIR, [1997], [1])
+    process_forecasts(BASEURL,   DATADIR, [2017], [1])
+    process_reforecasts(BASEURL, DATADIR, [2017], [1])
 
